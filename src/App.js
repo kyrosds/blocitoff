@@ -5,21 +5,30 @@ import * as firebase from 'firebase';
 
 class App extends Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
-      speed: 10
+      tasks: []
     };
   }
 
-  componentDidMount() {
-    const rootRef = firebase.database().ref().child('react');
-    const speedRef = rootRef.child('speed');
-    speedRef.on('value', snap => {
+  componentWillMount() {
+    let tasksRef = firebase.database().ref('tasks').orderByKey().limitToLast(100);
+    tasksRef.on('child_added', snap => {
+      let task = {
+        text: snap.val(),
+        id: snap.key
+      };
       this.setState({
-        speed: snap.val()
+        tasks: [task].concat(this.state.tasks)
       });
     });
+  }
+
+  addTask(e) {
+    e.preventDefault();
+    firebase.database().ref('tasks').push( this.inputEl.value );
+    this.inputEl.value = '';
   }
 
   render() {
@@ -27,9 +36,21 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
+          <h1 className="App-title">This is a task list built with React</h1>
         </header>
-        <h1>{this.state.speed}</h1>
+        <body className="taskList">
+        <form onSubmit={this.addTask.bind(this)}>
+          <input type="text" ref={ el => this.inputEl = el } />
+          <input type="submit" />
+          <div>
+            <ul>
+              {
+                this.state.tasks.map( task => <li key={task.id}>{task.text}</li>)
+              }
+            </ul>
+          </div>
+        </form>
+        </body>
       </div>
     );
   }
