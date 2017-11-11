@@ -13,6 +13,10 @@ class App extends Component {
   }
 
   componentWillMount() {
+    this.updateTasks();
+  }
+
+  updateTasks() {
     let tasksRef = firebase.database().ref('tasks').orderByKey().limitToLast(100);
     tasksRef.on('child_added', snap => {
       let task = snap.val();
@@ -21,7 +25,8 @@ class App extends Component {
         firebase.database().ref('tasks').child(snap.key).update({
           expired: true
         });
-      };
+      }
+      task.completedString = String(task.completed)
       task.expiredString = String(task.expired);
       task.id = snap.key
       this.setState({
@@ -43,6 +48,15 @@ class App extends Component {
     this.inputEl.value = '';
   }
 
+  completeTask(task) {
+    firebase.database().ref('tasks').child(task.id).update({
+        completed: true
+    });
+    task.completed = true;
+
+    this.updateTasks();
+  }
+
   render() {
     return (
       <div className="App">
@@ -59,10 +73,11 @@ class App extends Component {
             <ul className="uList">
               {
                 this.state.tasks.filter(
-                task => !task.expired ).map(
+                task => !task.expired && !task.completed).map(
                 task => <li className="liList" key={task.id}>
                           {task.text} - Created:
                           {task.createAt}
+                          <a href="#" onClick={() => this.completeTask(task)}>[Complete Task]</a>
                         </li> )
               }
             </ul>
@@ -77,6 +92,19 @@ class App extends Component {
                           {task.text} - Create:
                           {task.createAt}
                         </li> )
+              }
+            </ul>
+          </div>
+          <div>
+            <h2>Completed Tasks!</h2>
+            <ul className="uList">
+              {
+                this.state.tasks.filter(
+                task => task.completed ).map(
+                task => <li className="liList" key={task.id}>
+                          {task.text}
+                        </li>
+                )
               }
             </ul>
           </div>
