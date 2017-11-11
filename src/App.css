@@ -28,5 +28,22 @@
 }
 
 .taskList {
-  margin-top: 20px;
+  margin: 20px 300PX 0 300PX;
+}
+
+.completeList {
+  padding-top: 20px;
+}
+
+.expiredList {
+  padding-top: 20px;
+}
+
+.uList {
+  margin: 0px 200px 0px 150px;
+  padding-bottom: 20px;
+}
+
+.liList {
+  padding-bottom: 20px;
 }
