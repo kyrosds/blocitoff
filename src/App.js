@@ -7,6 +7,7 @@ class App extends Component {
 
   constructor(props) {
     super(props);
+    this.firebase = firebase.database().ref('tasks')
     this.state = {
       tasks: []
     };
@@ -17,7 +18,7 @@ class App extends Component {
   }
 
   updateTasks() {
-    let tasksRef = firebase.database().ref('tasks').orderByKey().limitToLast(100);
+    let tasksRef = this.firebase.orderByKey().limitToLast(100);
     tasksRef.on('child_added', snap => {
       let task = snap.val();
       //create a timer to remove tasks older than 7 days in milliseconds
@@ -36,25 +37,42 @@ class App extends Component {
   }
 
   addTask(e) {
-    e.preventDefault();
-    let todo = {
-      text: this.inputEl.value,
-      createAt: Date(),
-      setTime: Date.now(),
-      completed: false,
-      expired: false
+    let input = this.inputEl;
+    let textBody = this.textBody;
+    let priority = this.priority;
+    if(priority){
+      e.preventDefault();
+      let todo = {
+        text: input.value,
+        textBody: textBody.value,
+        createAt: Date(),
+        setTime: Date.now(),
+        completed: false,
+        expired: false,
+        priorityLevel: priority.value
+      }
+      input.value = '';
+      textBody.value = '';
+      priority.value = 'Low';
+      this.firebase.push( todo );
     }
-    firebase.database().ref('tasks').push( todo );
-    this.inputEl.value = '';
+    else {
+      alert("Please fill in a task, and a priority level of either low, med, or high has been assigned.");
+    }
   }
 
   completeTask(task) {
-    firebase.database().ref('tasks').child(task.id).update({
+    this.firebase.child(task.id).update({
         completed: true
     });
     task.completed = true;
 
     this.updateTasks();
+
+    this.firebase.on( 'child_changed', snap => {
+      task = snap.val();
+      console.log('Changed!');
+    });
   }
 
   render() {
@@ -64,52 +82,71 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">This is a task list built with React</h1>
         </header>
-        <body className="taskList">
-        <form onSubmit={this.addTask.bind(this)}>
-          <input type="text" ref={ el => this.inputEl = el } />
-          <input type="submit" />
-          <div className="completeList">
-            <h1>Tasks to be completed!</h1>
-            <ul className="uList">
-              {
-                this.state.tasks.filter(
-                task => !task.expired && !task.completed).map(
-                task => <li className="liList" key={task.id}>
-                          {task.text} - Created:
-                          {task.createAt}
-                          <a href="#" onClick={() => this.completeTask(task)}>[Complete Task]</a>
-                        </li> )
-              }
-            </ul>
-          </div>
-          <div className="expiredList">
-            <h2>Expired Tasks!</h2>
-            <ul className="uList">
-              {
-                this.state.tasks.filter(
-                task => task.expired ).map(
-                task => <li className="liList" key={task.id}>
-                          {task.text} - Create:
-                          {task.createAt}
-                        </li> )
-              }
-            </ul>
-          </div>
-          <div>
-            <h2>Completed Tasks!</h2>
-            <ul className="uList">
-              {
-                this.state.tasks.filter(
-                task => task.completed ).map(
-                task => <li className="liList" key={task.id}>
-                          {task.text}
-                        </li>
-                )
-              }
-            </ul>
-          </div>
-        </form>
-        </body>
+        <div className="task-list">
+          <form onSubmit={this.addTask.bind(this)}>
+            <h3>Enter a task</h3>
+            <input type="text" ref={ el => this.inputEl = el } />
+            <div>
+              <h4>Enter task description</h4>
+              <textarea rows="6" cols="100" defaultValue='Please task description here...' ref={ el => this.textBody = el }></textarea>
+            </div>
+            <select ref={ el => this.priority = el }>
+              <option value="Low">Low</option>
+              <option value="Med">Med</option>
+              <option value="High">High</option>
+            </select>
+            <input type="submit" value="Select Priority Level"/>
+            <div className="complete-list">
+              <h1>Tasks to be completed!</h1>
+              <ul className="u-list">
+                {
+                  this.state.tasks.filter(
+                  task => !task.expired && !task.completed).map(
+                  task => <li className="li-list" key={task.id}>
+                            <div className="label">{task.text}:</div>
+                            {task.textBody}<br></br>
+                            <span className="label">Created:</span>&nbsp;{task.createAt}<br></br>
+                            <span className="label">Priority Level:</span>&nbsp;{task.priorityLevel}<br></br>
+                            <input type="submit" value="Complete Task" onClick={() => this.completeTask(task)}/>
+                          </li> )
+                }
+              </ul>
+            </div>
+            <div className="expired-list">
+              <h2>Expired Tasks!</h2>
+              <ul className="u-list">
+                {
+                  this.state.tasks.filter(
+                  task => task.expired ).map(
+                  task => <li className="li-list" key={task.id}>
+                            <div className="label">{task.text}:</div>
+                            {task.textBody}<br></br>
+                            <span className="label">Created:</span>&nbsp;{task.createAt}<br></br>
+                            <span className="label">Priority Level:</span>&nbsp;{task.priorityLevel}<br></br>
+                            <span className="label">Expired:</span>&nbsp;{task.expiredString}
+                          </li> )
+                }
+              </ul>
+            </div>
+            <div>
+              <h2>Completed Tasks!</h2>
+              <ul className="u-list">
+                {
+                  this.state.tasks.filter(
+                  task => task.completed ).map(
+                  task => <li className="li-list" key={task.id}>
+                            <div className="label">{task.text}:</div>
+                            {task.textBody}<br></br>
+                            <span className="label">Created:</span>&nbsp;{task.createAt}<br></br>
+                            <span className="label">Priority Level:</span>&nbsp;{task.priorityLevel}<br></br>
+                            <span className="label">Completed task:</span>&nbsp;{task.completedString}
+                          </li>
+                  )
+                }
+              </ul>
+            </div>
+          </form>
+        </div>
       </div>
     );
   }

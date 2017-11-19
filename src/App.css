@@ -27,23 +27,27 @@
   to { transform: rotate(360deg); }
 }
 
-.taskList {
-  margin: 20px 300PX 0 300PX;
+.task-list {
+  margin-left: 100px;
+  text-align: left;
 }
 
-.completeList {
+.complete-list {
   padding-top: 20px;
 }
 
-.expiredList {
+.expired-list {
   padding-top: 20px;
 }
 
-.uList {
-  margin: 0px 200px 0px 150px;
+.u-list {
   padding-bottom: 20px;
 }
 
-.liList {
+.li-list {
   padding-bottom: 20px;
+}
+
+.label {
+  font-weight: bold;
 }
