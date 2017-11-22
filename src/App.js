@@ -29,14 +29,16 @@ class App extends Component {
       }
       task.completedString = String(task.completed)
       task.expiredString = String(task.expired);
-      task.id = snap.key
+      task.id = snap.key;
+      const other_tasks = this.state.tasks.filter(t => t.id !== task.id);
       this.setState({
-        tasks: [task].concat(this.state.tasks)
+        tasks: [task].concat(other_tasks)
       });
     });
   }
 
   addTask(e) {
+    console.log("Adding task!");
     let input = this.inputEl;
     let textBody = this.textBody;
     let priority = this.priority;
@@ -96,6 +98,7 @@ class App extends Component {
               <option value="High">High</option>
             </select>
             <input type="submit" value="Select Priority Level"/>
+          </form>
             <div className="complete-list">
               <h1>Tasks to be completed!</h1>
               <ul className="u-list">
@@ -145,7 +148,6 @@ class App extends Component {
                 }
               </ul>
             </div>
-          </form>
         </div>
       </div>
     );
